@@ -4,97 +4,71 @@ import { useEffect, useState } from "react";
 
 export default function Page() {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [copyOk, setCopyOk] = useState(false);
-  const [error, setError] = useState("");
 
-  async function loadDashboard() {
+  async function loadData() {
     try {
-      setLoading(true);
-      setError("");
-
-      const res = await fetch("/api/dashboard", {
-        cache: "no-store",
-      });
-
+      const res = await fetch("/api/dashboard");
       const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json?.error || "Error cargando dashboard");
-      }
-
       setData(json);
-    } catch (err) {
-      setError(err.message || "No se pudo cargar el dashboard");
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      console.error(e);
     }
   }
 
   useEffect(() => {
-    loadDashboard();
+    loadData();
   }, []);
 
-  async function copiarResumen() {
+  function copiar() {
     if (!data?.resumen) return;
 
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(data.resumen);
-      } else {
-        const aux = document.createElement("textarea");
-        aux.value = data.resumen;
-        document.body.appendChild(aux);
-        aux.select();
-        document.execCommand("copy");
-        document.body.removeChild(aux);
-      }
+    const aux = document.createElement("textarea");
+    aux.value = data.resumen;
+    document.body.appendChild(aux);
+    aux.select();
+    document.execCommand("copy");
+    document.body.removeChild(aux);
 
-      setCopyOk(true);
-      setTimeout(() => setCopyOk(false), 1800);
-    } catch {
-      alert("No se pudo copiar automáticamente. Copia manualmente el resumen.");
-    }
+    alert("Resumen copiado ✅");
   }
 
-  const alertColor = {
-    critico: {
-      bg: "#7f1d1d",
-      border: "#b91c1c",
-    },
-    alerta: {
-      bg: "#78350f",
-      border: "#d97706",
-    },
-    tendencia: {
-      bg: "#1e3a8a",
-      border: "#2563eb",
-    },
-  };
+  if (!data) {
+    return <div style={{ padding: 20 }}>Cargando...</div>;
+  }
 
-  const pageStyle = {
-    minHeight: "100vh",
-    background: "#0f172a",
-    color: "#f1f5f9",
-    fontFamily: "Arial, sans-serif",
-  };
+  return (
+    <div style={{ padding: 20, background: "#0f172a", minHeight: "100vh", color: "white" }}>
+      <h1>Gas Operativo</h1>
 
-  const containerStyle = {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "24px",
-  };
+      {/* RESUMEN */}
+      <div style={{ marginBottom: 20 }}>
+        <strong>Resumen:</strong>
+        <div>{data.resumen}</div>
+      </div>
 
-  const headerStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "16px",
-    marginBottom: "24px",
-    flexWrap: "wrap",
-  };
+      <button onClick={copiar} style={{ marginBottom: 20 }}>
+        Copiar resumen
+      </button>
 
+      {/* ALERTAS */}
+      <div style={{ marginBottom: 20 }}>
+        {data.alertas && data.alertas.map((a, i) => (
+          <div key={i} style={{ marginBottom: 5 }}>
+            {a.texto}
+          </div>
+        ))}
+      </div>
 
+      {/* KPIs */}
+      <div>
+        <div>Linepack: {data.linepack}</div>
+        <div>Delta: {data.delta}</div>
+        <div>Demanda: {data.demandaPrioritaria}</div>
+        <div>Total: {data.total}</div>
+      </div>
     </div>
+  );
+}
+``
   );
 }
