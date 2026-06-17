@@ -342,9 +342,11 @@ export default function Page() {
                 rel="noreferrer"
                 style={{ color: "#93c5fd", textDecoration: "none" }}
               >
-                Ver fuente RDS
-              </a>
-            ) : null}
+               {data?.sourceRdsUrl ? (
+  {data.sourceRdsUrl}
+    Ver fuente RDS
+  </a>
+) : null}
 
             {data?.sourcePrioritariaUrl ? (
               <a
